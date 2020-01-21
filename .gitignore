@@ -1,0 +1,4 @@
+__pycache__
+.gitignore
+.idea/
+server/local_settings.py

@@ -1,4 +1,10 @@
-### test work for open_solutions
+### test work for Open solutions
+
+###Порты на хост систему для проверки (подробнее в docker-compose.yml)
+
+55432 - postgres
+
+56379 - redis
 
 ###Сборка
 > docker-compose build
