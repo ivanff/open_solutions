@@ -1,0 +1,68 @@
+version: '3'
+services:
+  tcp_server:
+    build: server/
+    command: python -u ./tcp_server.py --delay=5
+    restart: on-failure
+    ports:
+      - 8889:8889
+    depends_on:
+      - redis
+      - rabbitmq
+  web:
+    build: server/
+    command: python -u ./web.py -c --delay=5
+    ports:
+      - 8888:8888
+    restart: on-failure
+    depends_on:
+      - db_postgres
+      - rabbitmq
+
+  client01:
+    build: client/
+    command: python -u ./tcp_client.py --delay=7 --id=123
+    depends_on:
+      - web
+      - tcp_server
+    env_file:
+      client.env
+
+  client02:
+    build: client/
+    command: python -u ./tcp_client.py --delay=7 --id=456
+    depends_on:
+      - web
+      - tcp_server
+    env_file:
+      client.env
+
+  test:
+    build: client/
+    command: bash -c "./test.sh"
+    depends_on:
+      - web
+      - tcp_server
+
+  db_postgres:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=aiopg
+    ports:
+      - 55432:5432
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 56379:6379
+  rabbitmq:
+    image: rabbitmq
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - rabbitmqctl
+      - status
+      timeout: 5s
