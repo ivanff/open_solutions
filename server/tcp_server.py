@@ -23,7 +23,7 @@ async def on_message_output(message: IncomingMessage):
         for iostream in server.devices.get(data['id'], []):
             if not iostream.closed():
                 print(
-                    'send to client'
+                    'send to client', data['id']
                 )
                 iostream.write(
                     bytes(

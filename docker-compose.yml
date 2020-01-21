@@ -11,7 +11,7 @@ services:
       - rabbitmq
   web:
     build: server/
-    command: python -u ./web.py -c --delay=5
+    command: python -u ./web.py --clean --delay=5
     ports:
       - 8888:8888
     restart: on-failure

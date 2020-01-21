@@ -74,14 +74,14 @@ if __name__ == "__main__":
     print(
         "CREATE DEVICE ", device_id
     )
-    requests.post(
-        "http://{host}:8888/api/v1/device".format(
-            host=os.environ.get('OPEN_SOLUTION_WEB_HOST', 'localhost')
-        ),
-        json={
-            "id": device_id,
-        }
-    )
+    # requests.post(
+    #     "http://{host}:8888/api/v1/device".format(
+    #         host=os.environ.get('OPEN_SOLUTION_WEB_HOST', 'localhost')
+    #     ),
+    #     json={
+    #         "id": device_id,
+    #     }
+    # )
 
     ioloop = asyncio.get_event_loop()
 
