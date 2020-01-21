@@ -9,16 +9,24 @@ import requests
 from tornado.tcpclient import TCPClient
 
 
-async def connect(stream, device_id):
+async def writer(stream, device_id):
     message_body = bytes(
         "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
     )
 
-    # Записывается один раз, получается что при коннекте, сервер -> exchange input -> web (on_message_input)
-    await stream.write(message_body)
+    while True:
+        await stream.write(message_body)
+        await asyncio.sleep(5)
+
+
+async def reader(stream, device_id, writer_task):
+    message_body = bytes(
+        "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
+    )
 
     while True:
         data = await stream.read_until_regex(b"@([^\@]+)@")
+        writer_task.close()
         print(
             "{time}: Data {data}, {status}".format(
                 time=datetime.datetime.now(),
@@ -36,8 +44,11 @@ async def multiple_tasks(device_id):
 
     stream = await tcp_client.connect(os.environ.get('OPEN_SOLUTION_TCP_SERVER_HOST', 'localhost'), 8889)
 
+    writer_task = writer(stream, device_id)
+
     input_coroutines = [
-        connect(stream, device_id)
+        writer_task,
+        reader(stream, device_id, writer_task)
     ]
 
     res = await asyncio.gather(*input_coroutines, return_exceptions=False)
@@ -74,14 +85,14 @@ if __name__ == "__main__":
     print(
         "CREATE DEVICE ", device_id
     )
-    # requests.post(
-    #     "http://{host}:8888/api/v1/device".format(
-    #         host=os.environ.get('OPEN_SOLUTION_WEB_HOST', 'localhost')
-    #     ),
-    #     json={
-    #         "id": device_id,
-    #     }
-    # )
+    requests.post(
+        "http://{host}:8888/api/v1/device".format(
+            host=os.environ.get('OPEN_SOLUTION_WEB_HOST', 'localhost')
+        ),
+        json={
+            "id": device_id,
+        }
+    )
 
     ioloop = asyncio.get_event_loop()
 
