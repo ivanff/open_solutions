@@ -1,5 +1,31 @@
 ### test work for Open solutions
 
+###Аргументы скриптов
+Для скриптов tcp_server.py tcp_client.py web.py используются сл. аргументы
+
+tcp_client.py
+
+>-d --delay start up delay in seconds
+>
+>-i --id device id
+>
+>-h --help print this message"
+
+tcp_server.py
+
+>-d --delay start up delay in seconds
+>
+>-h --help print this message"
+
+web.py
+
+>-d --delay start up delay in seconds
+>
+>-c --clean Пересохдает таблицы в базе (Установлен по умолчанию в конфиге compose)
+>
+>-h --help print this message"
+
+
 ###Порты на хост систему для проверки (подробнее в docker-compose.yml)
 
 55432 - postgres
