@@ -1,7 +1,6 @@
 FROM python:3.6
 
 ADD tcp_client.py /client/
-ADD test.sh /client/
 ADD requirements.txt /client/
 
 WORKDIR /client/
