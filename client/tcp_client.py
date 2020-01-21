@@ -16,7 +16,6 @@ async def writer(stream, device_id):
 
     try:
         while True:
-            print(1)
             await stream.write(message_body)
             await asyncio.sleep(5)
     except asyncio.CancelledError:
