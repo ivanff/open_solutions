@@ -9,29 +9,27 @@ import requests
 from tornado.tcpclient import TCPClient
 
 
-async def writer(stream, device_id):
-    message_body = bytes(
-        "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
-    )
-
+async def writer(stream, message_body):
     try:
         while True:
+            print(
+                'Write to stream ', message_body
+            )
             await stream.write(message_body)
             await asyncio.sleep(5)
     except asyncio.CancelledError:
         pass
 
 
-async def reader(stream, device_id, writer_task):
-    message_body = bytes(
-        "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
-    )
-
+async def reader(stream, message_body, writer_task):
     while True:
         data = await stream.read_until_regex(b"@([^\@]+)@")
 
         if not writer_task.cancelled():
             writer_task.cancel()
+            print(
+                "STOP writer by reader"
+            )
 
         print(
             "{time}: Data {data}, {status}".format(
@@ -50,8 +48,12 @@ async def multiple_tasks(device_id):
 
     stream = await tcp_client.connect(os.environ.get('OPEN_SOLUTION_TCP_SERVER_HOST', 'localhost'), 8889)
 
+    message_body = bytes(
+        "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
+    )
+
     writer_task = asyncio.ensure_future(
-        writer(stream, device_id)
+        writer(stream, message_body)
     )
 
     try:
@@ -59,10 +61,13 @@ async def multiple_tasks(device_id):
     except asyncio.TimeoutError:
         if not writer_task.cancelled():
             writer_task.cancel()
+            print(
+                "STOP writer by timeout"
+            )
 
     input_coroutines = [
         writer_task,
-        reader(stream, device_id, writer_task)
+        reader(stream, message_body, writer_task)
     ]
 
     res = await asyncio.gather(*input_coroutines, return_exceptions=False)
