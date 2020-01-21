@@ -14,9 +14,13 @@ async def writer(stream, device_id):
         "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
     )
 
-    while True:
-        await stream.write(message_body)
-        await asyncio.sleep(5)
+    try:
+        while True:
+            print(1)
+            await stream.write(message_body)
+            await asyncio.sleep(5)
+    except asyncio.CancelledError:
+        pass
 
 
 async def reader(stream, device_id, writer_task):
@@ -26,7 +30,10 @@ async def reader(stream, device_id, writer_task):
 
     while True:
         data = await stream.read_until_regex(b"@([^\@]+)@")
-        writer_task.close()
+
+        if not writer_task.cancelled():
+            writer_task.cancel()
+
         print(
             "{time}: Data {data}, {status}".format(
                 time=datetime.datetime.now(),
@@ -44,7 +51,15 @@ async def multiple_tasks(device_id):
 
     stream = await tcp_client.connect(os.environ.get('OPEN_SOLUTION_TCP_SERVER_HOST', 'localhost'), 8889)
 
-    writer_task = writer(stream, device_id)
+    writer_task = asyncio.ensure_future(
+        writer(stream, device_id)
+    )
+
+    try:
+        await asyncio.wait_for(writer_task, timeout=30)
+    except asyncio.TimeoutError:
+        if not writer_task.cancelled():
+            writer_task.cancel()
 
     input_coroutines = [
         writer_task,
