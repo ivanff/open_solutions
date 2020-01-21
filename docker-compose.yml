@@ -2,7 +2,7 @@ version: '3'
 services:
   tcp_server:
     build: server/
-    command: python -u ./tcp_server.py --delay=5
+    command: python -u ./tcp_server.py --delay=10
     restart: on-failure
     ports:
       - 8889:8889
@@ -11,7 +11,7 @@ services:
       - rabbitmq
   web:
     build: server/
-    command: python -u ./web.py --clean --delay=5
+    command: python -u ./web.py --clean --delay=10
     ports:
       - 8888:8888
     restart: on-failure
@@ -21,7 +21,7 @@ services:
 
   client01:
     build: client/
-    command: python -u ./tcp_client.py --delay=7 --id=123
+    command: python -u ./tcp_client.py --delay=12 --id=123
     depends_on:
       - web
       - tcp_server
@@ -30,19 +30,12 @@ services:
 
   client02:
     build: client/
-    command: python -u ./tcp_client.py --delay=7 --id=456
+    command: python -u ./tcp_client.py --delay=12 --id=456
     depends_on:
       - web
       - tcp_server
     env_file:
       client.env
-
-  test:
-    build: client/
-    command: bash -c "./test.sh"
-    depends_on:
-      - web
-      - tcp_server
 
   db_postgres:
     image: postgres:9.4
