@@ -16,7 +16,7 @@ async def writer(stream, message_body):
                 'Write to stream ', message_body
             )
             await stream.write(message_body)
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
     except asyncio.CancelledError:
         pass
 
@@ -52,21 +52,22 @@ async def multiple_tasks(device_id):
         "@{device_id},{report}@".format(device_id=device_id, report='name').encode('utf8')
     )
 
-    writer_task = asyncio.ensure_future(
-        writer(stream, message_body)
+    writer_task = asyncio.run_coroutine_threadsafe(
+        writer(stream, message_body),
+        asyncio.get_event_loop()
     )
 
-    try:
-        await asyncio.wait_for(writer_task, timeout=30)
-    except asyncio.TimeoutError:
-        if not writer_task.cancelled():
-            writer_task.cancel()
-            print(
-                "STOP writer by timeout"
-            )
+    # try:
+    #     await asyncio.wait_for(asyncio.sleep(10), timeout=10)
+    # except asyncio.TimeoutError:
+    #     if not writer_task.cancelled():
+    #         writer_task.cancel()
+    #         print(
+    #             "STOP writer"
+    #         )
+
 
     input_coroutines = [
-        writer_task,
         reader(stream, message_body, writer_task)
     ]
 
